@@ -1,0 +1,93 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+@layer base {
+  :root {
+    --background: 120 54% 15%; /* Dark Green */
+    --foreground: 50 10% 90%; /* Off-white/Light Goldish tint */
+
+    --card: 120 54% 20%; /* Dark Green for cards */
+    --card-foreground: 50 10% 90%; /* Off-white/Light Goldish on cards */
+
+    --popover: 120 54% 18%; /* Dark Green for popovers */
+    --popover-foreground: 50 10% 90%;
+
+    --primary: 51 100% 50%; /* Gold */
+    --primary-foreground: 120 54% 10%; /* Dark Green for text on Gold */
+
+    --secondary: 347 100% 35%; /* Burgundy */
+    --secondary-foreground: 50 10% 90%; /* Off-white/Light Goldish for text on Burgundy */
+
+    --muted: 120 30% 25%; /* Muted Dark Green */
+    --muted-foreground: 120 15% 65%; /* Muted Light Green/Gray */
+
+    --accent: 347 80% 58%; /* Lighter Burgundy for accents */
+    --accent-foreground: 50 10% 95%; /* Very light for text on accent */
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 120 30% 30%; /* Greenish border */
+    --input: 120 30% 28%; /* Greenish input background */
+    --ring: 51 100% 60%; /* Gold for focus rings */
+
+    --radius: 0.5rem;
+
+    /* Sidebar specific colors, adjust if needed or use main theme */
+    --sidebar-background: 120 54% 12%; /* Even darker green for sidebar */
+    --sidebar-foreground: 50 10% 85%;
+    --sidebar-primary: 51 100% 50%; /* Gold */
+    --sidebar-primary-foreground: 120 54% 10%;
+    --sidebar-accent: 347 100% 35%; /* Burgundy */
+    --sidebar-accent-foreground: 50 10% 90%;
+    --sidebar-border: 120 30% 25%;
+    --sidebar-ring: 51 100% 60%;
+  }
+
+  /* Ensure dark theme variables are applied if .dark class is not explicitly used for overrides */
+  .dark {
+    --background: 120 54% 15%;
+    --foreground: 50 10% 90%;
+    --card: 120 54% 20%;
+    --card-foreground: 50 10% 90%;
+    --popover: 120 54% 18%;
+    --popover-foreground: 50 10% 90%;
+    --primary: 51 100% 50%;
+    --primary-foreground: 120 54% 10%;
+    --secondary: 347 100% 35%;
+    --secondary-foreground: 50 10% 90%;
+    --muted: 120 30% 25%;
+    --muted-foreground: 120 15% 65%;
+    --accent: 347 80% 58%;
+    --accent-foreground: 50 10% 95%;
+    --destructive: 0 62.8% 30.6%; /* Keep dark destructive or customize */
+    --destructive-foreground: 0 0% 98%;
+    --border: 120 30% 30%;
+    --input: 120 30% 28%;
+    --ring: 51 100% 60%;
+
+    --sidebar-background: 120 54% 12%;
+    --sidebar-foreground: 50 10% 85%;
+    --sidebar-primary: 51 100% 50%;
+    --sidebar-primary-foreground: 120 54% 10%;
+    --sidebar-accent: 347 100% 35%;
+    --sidebar-accent-foreground: 50 10% 90%;
+    --sidebar-border: 120 30% 25%;
+    --sidebar-ring: 51 100% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
