@@ -96,18 +96,19 @@ function generateSimpleScenario(
   boardCardsDisplay: string[],
   action: Scenario['idealDecisionContext']['action'],
   actionValue?: number | string,
-  reasoning: string
+  reasoning?: string, // Reasoning is optional now for simple scenarios that might not need one if action is self-explanatory
+  optionsOverride?: ScenarioDecisionOption[]
 ): Scenario {
-  let scenarioOptions: ScenarioDecisionOption[] = [
+  let defaultOptions: ScenarioDecisionOption[] = [
     { text: '蓋牌', action: 'FOLD' },
-    { text: '跟注', action: 'CALL', value: 0 },
-    { text: '下注/加注', action: 'RAISE', value: 0 },
+    { text: '跟注', action: 'CALL', value: 0 }, // Value might be determined by UI based on current bet
+    { text: '下注/加注', action: 'RAISE', value: 0 }, // Value might be determined by UI
   ];
 
   if (id === 'scenario-simple-3') { // 大盲注特殊選項
-    scenarioOptions = [
+    defaultOptions = [
       { text: '過牌', action: 'CHECK' },
-      { text: '加注', action: 'RAISE', value: 0 }, // 大盲仍可選擇加注
+      { text: '加注', action: 'RAISE', value: 0 },
     ];
   }
 
@@ -116,7 +117,6 @@ function generateSimpleScenario(
                        boardCardsDisplay.length === 4 ? '轉牌圈' :
                        boardCardsDisplay.length >= 5 ? '河牌圈' : '翻牌前';
 
-  // 牌型辨識題通常是單挑或少量玩家，這裡設為2人以簡化
   const currentNumberOfPlayers = (id.startsWith('scenario-simple-4') || id.startsWith('scenario-simple-5') || id.startsWith('scenario-simple-6') || id.startsWith('scenario-simple-7')) ? 2 : 6;
 
 
@@ -129,11 +129,11 @@ function generateSimpleScenario(
     stage: currentStage,
     numberOfPlayers: currentNumberOfPlayers,
     difficulty: '簡單',
-    options: scenarioOptions,
+    options: optionsOverride || defaultOptions,
     idealDecisionContext: {
       action: action,
       value: actionValue,
-      reasoning: reasoning
+      reasoning: reasoning || "根據標準策略，這是推薦的行動。" // Default reasoning if not provided
     }
   };
 }
@@ -146,16 +146,11 @@ function generateMediumScenario(
   boardCardsDisplay: string[],
   stage: Scenario['stage'],
   numberOfPlayers: number,
-  action: Scenario['idealDecisionContext']['action'],
-  actionValue?: number | string,
-  reasoning: string
+  options: ScenarioDecisionOption[], // Options are now mandatory for medium
+  idealAction: Scenario['idealDecisionContext']['action'],
+  idealActionValue?: number | string,
+  idealReasoning: string
 ): Scenario {
-  const scenarioOptions: ScenarioDecisionOption[] = [
-    { text: '蓋牌', action: 'FOLD' },
-    { text: '跟注', action: 'CALL', value: 0 }, // 預設跟注額為0，實際會在組件中處理
-    { text: '下注/加注', action: 'RAISE', value: 0 }, // 預設加注額為0
-  ];
-
   return {
     id: id,
     title: title,
@@ -165,11 +160,11 @@ function generateMediumScenario(
     stage: stage,
     numberOfPlayers: numberOfPlayers,
     difficulty: '中等',
-    options: scenarioOptions,
+    options: options,
     idealDecisionContext: {
-      action: action,
-      value: actionValue,
-      reasoning: reasoning
+      action: idealAction,
+      value: idealActionValue,
+      reasoning: idealReasoning
     }
   };
 }
@@ -209,7 +204,7 @@ export const mockScenarios: Scenario[] = [
     '您手持 A♥ K♣ ( Ah Kc )，翻牌是 K♦ 7♠ 3♣ ( Kd 7s 3c )。您的最佳五張牌組合是什麼？',
     "Ah Kc",
     ["Kd", "7s", "3c"],
-    'RAISE', undefined, // 假設持有頂對會想加注
+    'RAISE', undefined, 
     '您的最佳五張牌組合是一對K ( K♣ K♦ ) 加上您的 A♥ ( Ah )、公共牌的 7♠ ( 7s ) 和 3♣ ( 3c ) 作為踢腳牌。這是「一對」牌型（頂對K）。'
   ),
   generateSimpleScenario(
@@ -218,7 +213,7 @@ export const mockScenarios: Scenario[] = [
     '您手持 Q♠ Q♥ ( Qs Qh )，翻牌是 Q♦ 8♥ 5♣ ( Qd 8h 5c )。您現在的最佳五張牌組合是什麼？',
     "Qs Qh",
     ["Qd", "8h", "5c"],
-    'RAISE', undefined, // 假設擊中暗三條會想加注
+    'RAISE', undefined, 
     '您擊中了「三條」Q ( Q♠ Q♥ Q♦ )，加上公共牌的 8♥ ( 8h ) 和 5♣ ( 5c ) 作為踢腳牌 (Kickers)。三條是比一對更強的牌型。'
   ),
   generateSimpleScenario(
@@ -227,7 +222,7 @@ export const mockScenarios: Scenario[] = [
     '您手持 A♣ 9♣ ( Ac 9c )，翻牌是 K♣ 7♣ 2♦ ( Kc 7c 2d )。轉牌發出 5♣ ( 5c )。您現在的最佳五張牌組合是什麼？',
     "Ac 9c",
     ["Kc", "7c", "2d", "5c"],
-    'RAISE', undefined, // 假設擊中同花會想加注
+    'RAISE', undefined, 
     '您有五張同花牌：A♣ K♣ 9♣ 7♣ 5♣ ( Ac Kc 9c 7c 5c )。這是一個「同花」牌型，由A♣ ( Ac )作為最高牌。同花比三條和兩對都強。'
   ),
   generateSimpleScenario(
@@ -236,17 +231,23 @@ export const mockScenarios: Scenario[] = [
     '您手持 J♦ 10♥ ( Jd 10h )，翻牌是 9♣ 8♦ 7♠ ( 9c 8d 7s )。您現在的最佳五張牌組合是什麼？',
     "Jd 10h",
     ["9c", "8d", "7s"],
-    'RAISE', undefined, // 假設擊中順子會想加注
+    'RAISE', undefined, 
     '您的 J♦ 10♥ ( Jd 10h ) 與公共牌的 9♣ 8♦ 7♠ ( 9c 8d 7s ) 組成了順子：J♦ 10♥ 9♣ 8♦ 7♠ ( Jd 10h 9c 8d 7s )。這是「順子」牌型，由J♦ ( Jd )作為最高牌。順子比三條弱，比同花弱（除非是同花順）。'
   ),
   generateSimpleScenario(
     'scenario-simple-8',
     '了解盲注',
     '在一手新的牌局開始時，誰是第一個強制下注的玩家？',
-    "", // 此題不涉及具體牌面
+    "", // No specific hand for this knowledge question
     [],
-    'RAISE', undefined, // 這裡的行動是虛設的，因為問題是知識性的
-    '在一手新的牌局開始時，坐在莊家按鈕 (Dealer Button) 左側的玩家需要下「小盲注 (Small Blind / SB)」，他左側的玩家需要下「大盲注 (Big Blind / BB)」。大盲注通常是小盲注的兩倍，它也是翻牌前最後一個行動的玩家（除非前面有人加注）。所以第一個強制下注的是小盲注玩家。'
+    'CHOICE_SB', // Ideal action code corresponding to the correct choice
+    undefined,
+    '在一手新的牌局開始時，坐在莊家按鈕 (Dealer Button) 左側的玩家需要下「小盲注 (Small Blind / SB)」，他左側的玩家需要下「大盲注 (Big Blind / BB)」。所以第一個強制下注的是小盲注玩家。',
+    [ // Override options for this specific question
+      { text: '小盲注 (Small Blind)', action: 'CHOICE_SB' },
+      { text: '大盲注 (Big Blind)', action: 'CHOICE_BB' },
+      { text: '莊家按鈕 (Dealer Button)', action: 'CHOICE_DB' },
+    ]
   ),
   generateMediumScenario(
     'scenario-medium-1',
@@ -256,9 +257,14 @@ export const mockScenarios: Scenario[] = [
     [],
     '翻牌前',
     6,
+    [
+      { text: '蓋牌', action: 'FOLD' },
+      { text: '跟注 $6', action: 'CALL', value: 6 },
+      { text: '加注到 $20', action: 'RAISE', value: 20 },
+    ],
     'RAISE',
-    20, // 假設 3-bet 到 $20
-    'A♦ Q♦ ( Ad Qd ) 是一手非常強的同花起手牌。面對緊兇型玩家在早期位置的開局加注，用 A♦ Q♦ ( Ad Qd ) 進行 3-Bet (再加注) 是標準打法，目的是建立底池、孤立對手、並在有位置的情況下掌握主動權。合理的 3-Bet 大小約是對手加注額的3-4倍。'
+    20, 
+    'A♦ Q♦ ( Ad Qd ) 是一手非常強的同花起手牌。面對緊兇型玩家在早期位置的開局加注，用 A♦ Q♦ ( Ad Qd ) 進行 3-Bet (再加注) 是標準打法，目的是建立底池、孤立對手、並在有位置的情況下掌握主動權。合理的 3-Bet 大小約是對手加注額的3-4倍，因此加注到 $20 是一個不錯的選擇。'
   ),
   generateMediumScenario(
     'scenario-medium-2',
@@ -268,9 +274,14 @@ export const mockScenarios: Scenario[] = [
     ['9d', '8c', '2s'],
     '翻牌圈',
     2,
-    'RAISE', // 代表持續下注
-    8, // 假設持續下注 $8
-    '翻牌是 9♦ 8♣ 2♠ ( 9d 8c 2s )，與您的 K♥ J♥ ( Kh Jh ) 並沒有直接幫助，您只有兩張高牌。但作為翻牌前加注者，在這個「乾燥」的牌面上進行持續下注 (Continuation Bet) 是一個標準的策略，可以讓對手蓋掉很多未能擊中牌面的手牌。下注約底池的一半或三分之二是不錯的選擇。'
+    [
+      { text: '蓋牌', action: 'FOLD' },
+      { text: '過牌', action: 'CHECK' }, // Player is in position, can check back
+      { text: '下注 $8', action: 'RAISE', value: 8 }, // RAISE action is used for betting here
+    ],
+    'RAISE', 
+    8, 
+    '翻牌是 9♦ 8♣ 2♠ ( 9d 8c 2s )，與您的 K♥ J♥ ( Kh Jh ) 並沒有直接幫助，您只有兩張高牌。但作為翻牌前加注者，在這個「乾燥」的牌面上進行持續下注 (Continuation Bet) 是一個標準的策略，可以讓對手蓋掉很多未能擊中牌面的手牌。下注約底池的一半到三分之二（例如 $8）是不錯的選擇。'
   ),
   generateMediumScenario(
     'scenario-medium-3',
@@ -280,8 +291,15 @@ export const mockScenarios: Scenario[] = [
     [],
     '翻牌前',
     6,
+    [ // Options are typically Fold, Call (not applicable as first to act), Raise
+      { text: '蓋牌', action: 'FOLD' }, // Unlikely, but an option
+      // Limping with AA is generally bad, but for completeness of action types:
+      // { text: '跟注 $2 (Limp)', action: 'CALL', value: 2 }, 
+      { text: '加注到 $6', action: 'RAISE', value: 6 },
+      { text: '加注到 $8', action: 'RAISE', value: 8 },
+    ],
     'RAISE',
-    6, // 假設開局加注到 $6 (3倍大盲)
+    6, 
     '口袋對A ( As Ah ) 是最強的起手牌。在沒有玩家入池的情況下，加注到3倍大盲注（$6）是一個標準的開局加注 (Open Raise)，目的是建立底池並在翻牌前贏下，或在翻牌後有優勢地遊戲。'
   ),
   generateMediumScenario(
@@ -292,9 +310,14 @@ export const mockScenarios: Scenario[] = [
     ['7s', '6s', '2c', '8s'],
     '轉牌圈',
     2,
-    'RAISE', // 代表下注
-    40, // 假設下注 $40
-    '轉牌的 8♠ ( 8s ) 完成了任何持有 5♠ 9♠ ( 5s 9s ) 的順子聽牌，同時也完成了任何黑桃聽牌 (Flush Draw)。雖然您的 AA 依然是一對頂級牌，但在這個牌面很濕潤（有很多潛在的順子和同花）的情況下，您需要下注來保護您的牌，並從對手可能有的對子或較弱聽牌中榨取價值。不下注可能會讓對手免費看到河牌擊中他的聽牌。下注約底池的四分之三是一個合理的保護性下注。'
+    [
+      { text: '蓋牌', action: 'FOLD' }, // Very unlikely with AA here
+      { text: '過牌', action: 'CHECK' },
+      { text: '下注 $40', action: 'RAISE', value: 40 }, // RAISE action is used for betting
+    ],
+    'RAISE', 
+    40, 
+    '轉牌的 8♠ ( 8s ) 完成了任何持有 5♠ 9♠ ( 5s 9s ) 的順子聽牌，同時也完成了任何黑桃聽牌 (Flush Draw)。雖然您的 AA 依然是一對頂級牌，但在這個牌面很濕潤（有很多潛在的順子和同花）的情況下，您需要下注來保護您的牌，並從對手可能有的對子或較弱聽牌中榨取價值。不下注可能會讓對手免費看到河牌擊中他的聽牌。下注約底池的四分之三（例如 $40）是一個合理的保護性下注。'
   ),
   {
     id: 'scenario-medium-5',
@@ -347,7 +370,7 @@ export const mockScenarios: Scenario[] = [
     difficulty: '困難',
     options: [
       { text: '蓋牌', action: 'FOLD' },
-      { text: '跟注 (抓唬)', action: 'CALL', value: 0 },
+      { text: '跟注 (抓唬)', action: 'CALL', value: 0 }, // Value needs to be dynamic for CALL
       { text: '加注全下 (反向詐唬)', action: 'RAISE', value: "ALL-IN"},
     ],
     idealDecisionContext: {
@@ -368,12 +391,12 @@ export const mockScenarios: Scenario[] = [
     difficulty: '困難',
     options: [
       { text: '蓋牌 (Fold)', action: 'FOLD' },
-      { text: '跟注 (Call)', action: 'CALL', value: 0 },
+      { text: '跟注 (Call)', action: 'CALL', value: 0 },  // Value needs to be dynamic
       { text: '再加注全下 (Re-raise All-in)', action: 'RAISE', value: "ALL-IN" }
     ],
     idealDecisionContext: {
       action: 'FOLD',
-      value: undefined, // FOLD has no value
+      value: undefined, 
       reasoning: "對手是一位緊的玩家，翻牌前跟注，翻牌後卻激進加注，在 A♠ K♠ 2♦ ( As Ks 2d ) 這樣的牌面，極有可能是更大的Set (AA 或 KK)。雖然損失很痛，但蓋掉三條2是避免更大損失的正確打法，尤其是面對緊的對手。當然，這也取決於籌碼深度和對手更詳細的傾向。"
     },
     historicalContext: "Set over Set (暗三條對上更大的暗三條) 是德州撲克中最令人沮喪且代價高昂的冤家牌之一。這種情況下，即使擁有很強的牌，也可能輸掉大量籌碼。識別這種危險情況並有紀律地蓋牌，是頂尖玩家的標誌。"
@@ -389,7 +412,7 @@ export const mockScenarios: Scenario[] = [
     difficulty: '困難',
     options: [
       { text: '蓋牌 (Fold)', action: 'FOLD' },
-      { text: '跟注 (Call - 抓詐唬)', action: 'CALL', value: 0 },
+      { text: '跟注 (Call - 抓詐唬)', action: 'CALL', value: 0 }, // Value needs to be dynamic
       { text: '加注全下 (All-in Bluff)', action: 'RAISE', value: "ALL-IN"},
     ],
     idealDecisionContext: {
@@ -456,3 +479,4 @@ export let completedLessonsMock: Record<string, boolean> = {
   'lesson-tilt-control': false,
 };
 
+    
