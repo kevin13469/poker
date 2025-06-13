@@ -5,7 +5,7 @@ export interface ParsedCard {
   rank: string; // 將儲存 '10' 而不是 'T'
   suit: string; // 's', 'h', 'd', 'c'
   symbol: string; // '♠', '♥', '♦', '♣'
-  color: 'text-red-500' | 'text-foreground'; // Tailwind color class
+  color: 'text-red-500' | 'text-black'; // Tailwind color class for text
   original: string;
 }
 
@@ -16,11 +16,11 @@ const suitSymbols: Record<string, string> = {
   c: '♣',  // Clubs
 };
 
-const suitColors: Record<string, 'text-red-500' | 'text-foreground'> = {
-  s: 'text-foreground', // Spades are black (using foreground for theme adaptability)
-  h: 'text-red-500',   // Hearts are red
-  d: 'text-red-500',   // Diamonds are red
-  c: 'text-foreground', // Clubs are black
+const suitColors: Record<string, 'text-red-500' | 'text-black'> = {
+  s: 'text-black',   // Spades are black text
+  h: 'text-red-500',   // Hearts are red text
+  d: 'text-red-500',   // Diamonds are red text
+  c: 'text-black', // Clubs are black text
 };
 
 export function parseCard(cardString: string): ParsedCard | null {
@@ -68,4 +68,3 @@ export function parseBoard(boardCards: string[]): (ParsedCard | null)[] {
     if (!boardCards || boardCards.length === 0) return [];
     return boardCards.map(cs => parseCard(cs.trim())).filter(Boolean);
 }
-
