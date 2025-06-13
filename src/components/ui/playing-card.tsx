@@ -26,9 +26,9 @@ export function PlayingCard({ card, size = 'md' }: PlayingCardProps) {
   return (
     <div
       className={cn(
-        'bg-card border border-border shadow-md flex flex-col items-center justify-center relative select-none',
+        'bg-white border border-border shadow-md flex flex-col items-center justify-center relative select-none', // Explicitly setting bg-white
         sizeClasses[size],
-        card.color
+        card.color // card.color is 'text-black' or 'text-red-500' from card-utils.ts
       )}
       aria-label={`牌 ${card.rank}${card.symbol}`}
     >
@@ -44,4 +44,3 @@ export function PlayingCard({ card, size = 'md' }: PlayingCardProps) {
     </div>
   );
 }
-
